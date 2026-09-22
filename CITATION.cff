@@ -1,0 +1,44 @@
+cff-version: 1.2.0
+message: "If you use this software, please cite both the software and the paper."
+title: "J-IoU: junction-restricted evaluation for 3D plant organ segmentation"
+abstract: >-
+  Evaluation code for J-IoU, a junction-restricted protocol that scores 3D
+  plant organ segmentation only within a narrow band around ground-truth organ
+  boundaries, together with a geometric label-integrity audit for annotated
+  plant point clouds.
+type: software
+version: "1.0.0"
+license: MIT
+authors:
+  - family-names: Toscany
+    given-names: "Afrizal Nehemia"
+    email: nehemiatoscany@graduate.utm.my
+    affiliation: "Universiti Teknologi Malaysia / Universitas Dinamika Bangsa"
+  - family-names: Idris
+    given-names: "Mohd Yazid"
+    email: yazid@utm.my
+    affiliation: "Universiti Teknologi Malaysia"
+  - family-names: Pratama
+    given-names: Yovi
+    email: yovi@graduate.utm.my
+    affiliation: "Universiti Teknologi Malaysia / Universitas Dinamika Bangsa"
+  - family-names: Rasywir
+    given-names: Errissya
+    email: errissya.rasywir@gmail.com
+    affiliation: "Universitas Dinamika Bangsa"
+keywords:
+  - plant phenotyping
+  - point cloud
+  - semantic segmentation
+  - evaluation metric
+  - organ junction
+  - Pheno4D
+# TODO: isi setelah rilis Zenodo dibuat dan paper terbit
+# doi: 10.5281/zenodo.XXXXXXX
+# preferred-citation:
+#   type: article
+#   title: "J-IoU: A Junction-Restricted Evaluation Protocol for 3D Plant Organ Segmentation"
+#   journal: "Plant Methods"
+#   year: 2026
+#   doi: 10.1186/s13007-0XX-0XXXX-X
+#   authors: [...]

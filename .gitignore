@@ -1,0 +1,16 @@
+__pycache__/
+*.py[cod]
+.ipynb_checkpoints/
+.venv/
+venv/
+
+# datasets and model outputs are not versioned -- see README for how to obtain
+data/
+predictions/
+exp/
+*.pth
+*.npy
+
+# generated
+figures/
+*.pdf

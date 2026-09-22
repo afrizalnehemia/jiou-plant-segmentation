@@ -1,0 +1,9 @@
+# the metric itself
+numpy>=1.23
+scipy>=1.9
+
+# fast reading of raw Pheno4D text files (optional but ~100x faster)
+pandas>=1.5
+
+# figure scripts only
+matplotlib>=3.6
