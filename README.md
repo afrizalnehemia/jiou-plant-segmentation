@@ -29,7 +29,7 @@ which is worth keeping in mind when reading single-run comparisons.
 ## Install
 
 ```bash
-git clone https://github.com/<user>/jiou-plant-segmentation.git
+git clone https://github.com/afrizalnehemia/jiou-plant-segmentation.git
 cd jiou-plant-segmentation
 pip install -r requirements.txt
 ```
