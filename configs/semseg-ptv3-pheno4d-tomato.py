@@ -11,48 +11,48 @@ not a detail.
 """
 _base_ = ["../_base_/default_runtime.py"]
 
-# ---- split: edit test_plants per fold (see 01-DATA/splits.py) ----------------
+# ---- split: edit test_plants per fold (see scripts/splits.py) ----------------
 train_plants = ["Tomato03", "Tomato04", "Tomato05", "Tomato06", "Tomato07"]
 test_plants  = ["Tomato01", "Tomato02"]
-# ---------------------------------------------------------------- CATATAN TOMAT
-# Split fold 0 untuk tomat, mengikuti splits.py: 5 tanaman latih, 2 tanaman uji.
+# ----------------------------------------------------------------- TOMATO NOTES
+# Fold 0 split for tomato, following splits.py: 5 plants to train on, 2 to test.
 #
-# Dua hal yang berbeda dari jagung dan perlu disadari saat membaca hasilnya:
+# Two things differ from maize and are worth knowing before reading the results:
 #
-# 1. Skema labelnya SAMA (0 soil, 1 stem, 2 leaf) -- tomat memang hanya punya satu
-#    kolom label bergaya collar. Jadi num_classes dan names tidak berubah, dan
-#    kedua spesies dinilai dengan definisi kelas yang identik.
+# 1. The label scheme is the SAME (0 soil, 1 stem, 2 leaf) -- tomato only ever has
+#    one collar-style label column. num_classes and names are unchanged, so both
+#    species are scored against identical class definitions.
 #
-# 2. Komposisi kelasnya bergeser ekstrem sepanjang pertumbuhan. Pada T07, soil
-#    turun dari 93,3% (0305) ke 8,5% (0325) sementara leaf naik dari 5,8% ke 84,0%,
-#    dengan jumlah daun 3 -> 26. Scan tomat juga lebih besar: sampai 4,2 juta titik
-#    versus 1,7 juta pada jagung. Awasi VRAM pada smoke test sebelum melepas lima
-#    seed -- batch 4 belum tentu muat seperti pada jagung.
+# 2. Class composition shifts hard over development. On T07, soil falls from 93.3%
+#    (0305) to 8.5% (0325) while leaf climbs from 5.8% to 84.0%, with leaf count
+#    going 3 -> 26. Tomato scans are also bigger: up to 4.2M points against 1.7M
+#    for maize. Watch VRAM during the smoke test before launching five seeds --
+#    batch 4 will not necessarily fit the way it does on maize.
 
 
 data_root = "data/pheno4d"
-grid_size = 0.5          # mm -- lihat CATATAN GRID di bawah
+grid_size = 0.5          # mm -- see GRID NOTE below
 
-# CATATAN GRID
-# Jarak antar titik asli di area tanaman Pheno4D adalah 0,03-0,08 mm (diukur, bukan
-# diperkirakan). Grid 2 mm berarti 25-60x lebih kasar daripada datanya, dan pita
-# persimpangan yang dinilai lebarnya hanya beberapa milimeter -- model jadi dinilai
-# gagal sebagian karena dibutakan preprocessing, bukan karena arsitekturnya.
-# Beban komputasinya ringan (0,5 mm -> ~80 ribu voxel per scan, 0,25 mm -> ~325 ribu),
-# jadi grid halus terjangkau. grid_size diperlakukan sebagai faktor eksperimen yang
-# dilaporkan: jalankan 2,0 / 1,0 / 0,5 / 0,25 mm dan laporkan kurvanya.
+# GRID NOTE
+# Point spacing on the plant itself in Pheno4D is 0.03-0.08 mm -- measured, not
+# assumed. A 2 mm grid is 25-60x coarser than the data, and the junction band
+# being scored is only a few millimetres wide, so the model gets marked down
+# partly for being blinded by preprocessing rather than for its architecture.
+# The compute cost is low (0.5 mm -> ~80k voxels per scan, 0.25 mm -> ~325k), so a
+# fine grid is affordable. grid_size is treated as a reported experimental factor:
+# run 2.0 / 1.0 / 0.5 / 0.25 mm and report the curve.
 
 num_classes = 3          # 0 soil, 1 stem, 2 leaf
 names = ["soil", "stem", "leaf"]
 
-batch_size = 2          # TOMAT: bukan 4 seperti jagung -- lihat CATATAN BATCH
-# CATATAN BATCH
-# Scan tomat mencapai 4,2 juta titik (jagung: 1,7 juta). PTv3 yang memuncak di
-# 12,1 GB pada jagung meminta 21,6 GB di sini dan OOM pada kartu 24 GB.
-# batch 2 dipakai untuk KEDUA model tomat, bukan hanya PTv3: perbandingan yang
-# menjadi klaim makalah adalah antar model DI DALAM satu spesies, jadi keduanya
-# harus berbagi batch size. Jagung tetap di 4; angka absolut lintas spesies
-# memang tidak dibandingkan, dan perbedaan ini dilaporkan.
+batch_size = 2          # TOMATO: not 4 as on maize -- see BATCH NOTE
+# BATCH NOTE
+# Tomato scans reach 4.2M points (maize: 1.7M). PTv3, which peaks at 12.1 GB on
+# maize, asks for 21.6 GB here and OOMs a 24 GB card. Batch 2 is used for BOTH
+# tomato models, not just PTv3: the comparison the paper claims is between models
+# WITHIN a species, so the two have to share a batch size. Maize stays at 4.
+# Absolute values are not compared across species anyway, and the difference is
+# reported.
 num_worker = 8
 mix_prob = 0.0           # off: mixing two plants makes junction labels meaningless
 empty_cache = False

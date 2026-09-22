@@ -11,21 +11,21 @@ not a detail.
 """
 _base_ = ["../_base_/default_runtime.py"]
 
-# ---- split: edit test_plants per fold (see 01-DATA/splits.py) ----------------
+# ---- split: edit test_plants per fold (see scripts/splits.py) ----------------
 train_plants = ["Maize03", "Maize04", "Maize05", "Maize06", "Maize07"]
 test_plants  = ["Maize01", "Maize02"]
 
 data_root = "data/pheno4d"
-grid_size = 0.5          # mm -- lihat CATATAN GRID di bawah
+grid_size = 0.5          # mm -- see GRID NOTE below
 
-# CATATAN GRID
-# Jarak antar titik asli di area tanaman Pheno4D adalah 0,03-0,08 mm (diukur, bukan
-# diperkirakan). Grid 2 mm berarti 25-60x lebih kasar daripada datanya, dan pita
-# persimpangan yang dinilai lebarnya hanya beberapa milimeter -- model jadi dinilai
-# gagal sebagian karena dibutakan preprocessing, bukan karena arsitekturnya.
-# Beban komputasinya ringan (0,5 mm -> ~80 ribu voxel per scan, 0,25 mm -> ~325 ribu),
-# jadi grid halus terjangkau. grid_size diperlakukan sebagai faktor eksperimen yang
-# dilaporkan: jalankan 2,0 / 1,0 / 0,5 / 0,25 mm dan laporkan kurvanya.
+# GRID NOTE
+# Point spacing on the plant itself in Pheno4D is 0.03-0.08 mm -- measured, not
+# assumed. A 2 mm grid is 25-60x coarser than the data, and the junction band
+# being scored is only a few millimetres wide, so the model gets marked down
+# partly for being blinded by preprocessing rather than for its architecture.
+# The compute cost is low (0.5 mm -> ~80k voxels per scan, 0.25 mm -> ~325k), so a
+# fine grid is affordable. grid_size is treated as a reported experimental factor:
+# run 2.0 / 1.0 / 0.5 / 0.25 mm and report the curve.
 
 num_classes = 3          # 0 soil, 1 stem, 2 leaf
 names = ["soil", "stem", "leaf"]

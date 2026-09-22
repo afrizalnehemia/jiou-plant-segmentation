@@ -33,8 +33,8 @@ keywords:
   - evaluation metric
   - organ junction
   - Pheno4D
-# TODO: isi setelah rilis Zenodo dibuat dan paper terbit
-# doi: 10.5281/zenodo.XXXXXXX
+doi: 10.5281/zenodo.22893259
+# TODO: fill in once the paper is published
 # preferred-citation:
 #   type: article
 #   title: "J-IoU: A Junction-Restricted Evaluation Protocol for 3D Plant Organ Segmentation"

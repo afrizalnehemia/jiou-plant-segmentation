@@ -1,21 +1,20 @@
 #!/usr/bin/env bash
-# Inferensi untuk tiap seed, lalu petakan prediksi ke resolusi penuh supaya
-# semua model dinilai pada himpunan titik yang persis sama.
+# Run inference for each seed, then map the predictions back to full resolution
+# so that every model is scored on exactly the same set of points.
 #
-# Catatan: train_seeds.sh menghasilkan satu config turunan per seed
-# (<CFG>-seed<N>.py), jadi di sini config DAN nama eksperimen sama-sama memakai
-# nama turunan itu.
+# Note: train_seeds.sh generates one derived config per seed (<CFG>-seed<N>.py),
+# so here the config AND the experiment name both use that derived name.
 set -euo pipefail
 
-# W&B tidak dipakai: Tensorboard sudah mencatat semuanya ke exp/. Tanpa baris ini
-# Pointcept memunculkan prompt login interaktif yang menggantung proses tanpa batas
-# waktu -- fatal untuk rangkaian yang ditinggal jalan sendiri.
+# W&B off: Tensorboard already logs everything to exp/. Without these two lines
+# Pointcept raises an interactive login prompt that hangs the process indefinitely
+# -- fatal for a sequence left running unattended.
 export WANDB_MODE=${WANDB_MODE:-disabled}
 export WANDB_SILENT=true
 
-CFG=${1:?usage: test_and_export.sh <nama-config-tanpa-.py>}
+CFG=${1:?usage: test_and_export.sh <config-name-without-.py>}
 POINTCEPT=${POINTCEPT:-$HOME/G2/Pointcept}
-# akar repo ini; timpa dengan REPO=... kalau strukturmu berbeda
+# root of this repo; override with REPO=... if your layout differs
 G2=${REPO:-$(cd "$(dirname "$0")/.." && pwd)}
 GT=${GT:-$HOME/G2/data/pheno4d}
 
@@ -23,7 +22,7 @@ cd "$POINTCEPT"
 for S in 0 1 2 3 4; do
   EXP="${CFG}-seed${S}"
   if [ ! -f "exp/pheno4d/${EXP}/model/model_best.pth" ]; then
-    echo "== lewati ${EXP}: belum ada model_best.pth"; continue
+    echo "== skipping ${EXP}: no model_best.pth yet"; continue
   fi
   echo "══════════════════════════════════════ ${EXP}"
   sh scripts/test.sh -g 1 -d pheno4d -c "$EXP" -n "$EXP" -w model_best

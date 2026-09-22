@@ -1,17 +1,15 @@
 #!/usr/bin/env python3
-"""Menghasilkan SELURUH gambar untuk naskah, berlabel bahasa Inggris.
+"""Regenerate every figure in the paper, in one command.
 
-Skrip terpisah dari viz_*.py yang lain (yang berlabel Indonesia untuk eksplorasi)
-supaya gambar naskah bisa direproduksi dengan satu perintah dan gayanya seragam.
+  fig1  the junction band definition, drawn from real data rather than sketched
+  fig2  radius sweep: J-IoU against r, next to the global mIoU
+  fig3  errors inside the junction band, maize and tomato side by side
+  fig4  the label anomaly in Tomato02/T02_0325_a
 
-  fig1  definisi pita junction, digambar dari data asli
-  fig2  sapuan radius: J-IoU terhadap r, dibandingkan mIoU global
-  fig3  error di pita junction, jagung dan tomat berdampingan
-  fig4  anomali label pada Tomato02/T02_0325_a
-
-Palet dua seri (#0072B2, #D55E00) sudah diuji keterbacaannya untuk buta warna
-(delta-E 21.9 pada simulasi protanopia) dan dibedakan pula lewat penanda dan
-gaya garis, supaya tetap terbaca saat dicetak hitam-putih.
+The two-series palette (#0072B2, #D55E00) is checked for colour-vision
+deficiency -- delta-E 21.9 under simulated protanopia, against a threshold of 8 --
+and the series are separated by marker and line style as well, so the figures
+survive being printed in black and white.
 """
 import argparse, csv, os, sys
 from collections import defaultdict
@@ -120,7 +118,7 @@ def fig2(out):
             ax.fill_between(radii, m - s, m + s, color=MODEL_COL[mk], alpha=0.16, lw=0, zorder=2)
             g = d[mk]["mIoU_global"][0]
             ax.axhline(g, color=MODEL_COL[mk], ls=":", lw=1.4, alpha=0.85, zorder=1)
-            # geser anotasi ke atas/bawah per model supaya tidak bertabrakan
+            # offset the annotation up or down per model so the two do not collide
             dy = 5 if mk == "ptv3" else -11
             ax.annotate(f"{MODEL_EN[mk]} global {g:.3f}", xy=(10, g), xytext=(-4, dy),
                         textcoords="offset points", ha="right", fontsize=8.5,

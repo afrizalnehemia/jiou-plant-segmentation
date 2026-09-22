@@ -1,10 +1,10 @@
 #!/usr/bin/env python3
-"""Agregat tomat DENGAN scan anomali dikoreksi (bukan dikeluarkan).
+"""Tomato aggregates WITH the anomalous scan corrected rather than dropped.
 
-Label 0<->1 pada Tomato02/T02_0325_a ditukar balik, lalu scan itu diskor ulang
-dengan prediksi yang SAMA -- prediksi tidak perlu dihitung ulang karena hanya
-ground truth-nya yang salah. Hasilnya menggantikan baris rusak di CSV, dan
-agregat per model dihitung atas 22 dari 22 scan uji.
+Labels 0 and 1 in Tomato02/T02_0325_a are swapped back, and that scan is then
+rescored against the SAME predictions -- nothing needs retraining, because only
+the ground truth was wrong. The result replaces the broken rows in the CSV, and
+per-model aggregates are computed over 22 of 22 test scans.
 """
 import csv, glob, os, sys
 import numpy as np
@@ -39,7 +39,7 @@ for d in sorted(glob.glob(os.path.join(RUNS, "*tomato-seed*"))):
         row[f"O_band_share_r{r}"] = float(mO[r].mean())
     fixed[(model, seed)] = row
 
-print("scan terkoreksi -- pita organ r=5mm mencakup %.2f%% titik\n" % (mO[5].mean()*100))
+print("corrected scan -- organ band at r=5mm covers %.2f%% of points\n" % (mO[5].mean()*100))
 
 rows = list(csv.DictReader(open(CSV)))
 store = defaultdict(lambda: defaultdict(lambda: defaultdict(list)))
@@ -58,7 +58,7 @@ for model in sorted(store):
         print(f"{model:<32}{c:<16}{per_seed.mean():>8.3f}{per_seed.std(ddof=1):>8.3f}{n:>8}")
     print()
 
-# tulis CSV terkoreksi sebagai sumber tunggal untuk tabel dan gambar hilir
+# write the corrected CSV as the single source for downstream tables and figures
 OUT = os.path.join(RUNS, "scores-tomato-corrected.csv")
 with open(CSV) as f:
     allrows = list(csv.DictReader(f)); fields = allrows[0].keys()
@@ -67,4 +67,4 @@ for r in allrows:
         r.update({k: v for k, v in fixed[(r["model"], r["seed"])].items() if k in r})
 with open(OUT, "w", newline="") as f:
     w = csv.DictWriter(f, fieldnames=list(fields)); w.writeheader(); w.writerows(allrows)
-print("ditulis:", OUT, len(allrows), "baris")
+print("wrote:", OUT, len(allrows), "rows")

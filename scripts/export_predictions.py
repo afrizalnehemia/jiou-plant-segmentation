@@ -44,12 +44,12 @@ def main():
     n_ok = n_prop = 0
     for pred_file in sorted(glob.glob(os.path.join(a.pred_root, "*.npy"))):
         name = os.path.splitext(os.path.basename(pred_file))[0]
-        # Pointcept menulis "<Plant>-<scan>_pred.npy"; buang akhiran itu supaya
-        # nama scan-nya cocok dengan folder ground truth.
+        # Pointcept writes "<Plant>-<scan>_pred.npy"; strip the suffix so the
+        # scan name matches its ground-truth folder.
         if name.endswith("_pred"):
             name = name[: -len("_pred")]
         if "-" not in name:
-            print(f"lewati {name}: nama tidak berbentuk <Plant>-<scan>"); continue
+            print(f"skip {name}: name is not of the form <Plant>-<scan>"); continue
         plant, scan = name.split("-", 1)
         gt_dir = os.path.join(a.gt_root, plant, scan)
         if not os.path.isdir(gt_dir):

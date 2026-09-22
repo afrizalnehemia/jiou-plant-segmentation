@@ -1,5 +1,7 @@
 # J-IoU: junction-restricted evaluation for 3D plant organ segmentation
 
+[![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.22893259.svg)](https://doi.org/10.5281/zenodo.22893259)
+
 Organ-level segmentation of plant point clouds is almost always reported as a
 single global mIoU. That number is dominated by the interiors of large organs.
 The traits people actually want — leaf insertion angle, leaf count, internode

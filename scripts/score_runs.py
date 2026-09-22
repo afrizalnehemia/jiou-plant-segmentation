@@ -30,13 +30,13 @@ for run_dir in sorted(d for d in glob.glob(os.path.join(a.results_root, "*")) if
         if len(pred) != len(gt):
             print(f"!! {run}/{name}: {len(pred)} vs {len(gt)} -- run export_predictions.py first")
             continue
-        # Dua definisi pita, dihitung berdampingan supaya bisa dibandingkan, bukan
-        # dipilih di muka:
-        #   J -- semua batas label, termasuk kontak tanah-tanaman
-        #   O -- hanya persimpangan antar-organ (tanah tidak menjadi batas)
-        # Kontak tanah adalah transisi termudah dalam satu scan. Kalau ikut
-        # menjadi batas, pada scan yang didominasi tanah ia menguasai pita, dan
-        # metriknya diam-diam mengukur pemisahan tanah alih-alih pangkal daun.
+        # Both band definitions, computed side by side so they can be compared
+        # rather than chosen up front:
+        #   J -- every label boundary, soil-plant contact included
+        #   O -- organ-organ junctions only (soil does not count as a boundary)
+        # Soil contact is the easiest transition in a scan. Left in, it dominates
+        # the band on soil-heavy scans, and the metric then quietly measures
+        # ground separation instead of the leaf collar.
         r = evaluate(coord, gt, pred, a.radii)
         o = evaluate(coord, gt, pred, a.radii, seed_ignore=(0,))
         row = {"model": model, "seed": seed, "plant": plant, "scan": scan,
