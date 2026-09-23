@@ -1,62 +1,43 @@
 """
-Junction-aware evaluation for 3D plant point cloud segmentation.
+Junction-restricted evaluation for 3D plant point cloud segmentation.
 
-Adapts the 2D trimap / Boundary-IoU evaluation protocol to plant point clouds:
-instead of scoring every point equally, restrict the score to a narrow band
-around ground-truth organ junctions, where the literature consistently reports
-failure but never measures it.
-
-Author: Afrizal Nehemia Toscany
+Adapts the 2D trimap and Boundary IoU idea to plant point clouds. Instead of
+scoring every point, the score is restricted to a narrow band around the
+ground-truth boundaries between organs.
 """
 import numpy as np
 from scipy.spatial import cKDTree
 
 
-# ---------------------------------------------------------------- data loading
-
-def load_pheno4d(path, scheme="collar"):
-    """Pheno4D maize scan -> (xyz, semantic, instance).
-
-    Column 4 = leaf-collar scheme : 0 soil, 1 stem, >=2 leaf instances
-    Column 5 = leaf-tip scheme    : 0 soil, >=1 leaf instances (no stem class)
-    Tomato scans carry a single label column with the collar-style convention.
-    """
-    raw = np.loadtxt(path)
-    xyz = raw[:, :3].astype(np.float64)
-    if raw.shape[1] >= 5:
-        lab = raw[:, 3 if scheme == "collar" else 4].astype(np.int64)
-    else:
-        lab = raw[:, 3].astype(np.int64)
-
-    inst = lab.copy()
-    if scheme == "collar":
-        sem = np.where(lab == 0, 0, np.where(lab == 1, 1, 2))   # soil/stem/leaf
-    else:
-        sem = np.where(lab == 0, 0, 2)                          # soil/leaf
-    return xyz, sem, inst
-
-
 # ------------------------------------------------------- junction band (trimap)
 
-def boundary_seeds(xyz, labels, k=16, tree=None):
-    """Points whose k-NN neighbourhood contains another label."""
+def boundary_seeds(xyz, labels, k=16, tree=None, chunk=200_000):
+    """Points whose k nearest neighbours include a different label.
+
+    The query runs in chunks so that scans of several million points fit in
+    a few GB of memory.
+    """
     tree = tree or cKDTree(xyz)
-    _, idx = tree.query(xyz, k=k + 1, workers=-1)
-    return (labels[idx[:, 1:]] != labels[:, None]).any(axis=1)
+    out = np.zeros(len(xyz), bool)
+    for s in range(0, len(xyz), chunk):
+        _, idx = tree.query(xyz[s:s + chunk], k=k + 1, workers=-1)
+        out[s:s + chunk] = (labels[idx[:, 1:]] != labels[s:s + chunk, None]).any(axis=1)
+    return out
 
 
 def distance_to_boundary(xyz, labels, k=16, tree=None, seed_ignore=()):
     """Distance from every point to the nearest label boundary.
 
-    Computed once; every band radius is then a threshold on this array. The
-    obvious implementation -- a ball query per seed, unioned in a Python loop --
-    is orders of magnitude slower and does not scale to a full dataset sweep.
+    The distance is computed once, and every band radius is then a threshold
+    on the same array. A ball query per seed would give the same band but is
+    much slower on a full sweep.
 
-    seed_ignore drops those labels BEFORE boundaries are located, which changes
-    what the band means. With soil ignored, the soil-plant contact stops being a
-    boundary and only organ-organ transitions -- stem/leaf and leaf/leaf -- seed
-    the band. Distances are still measured for every point, so nothing is lost
-    from the scored set; only the definition of "junction" narrows.
+    seed_ignore removes those labels before the boundaries are located. With
+    soil ignored (seed_ignore=(0,)), soil contact no longer counts as a
+    boundary. With semantic labels only stem-leaf transitions then produce
+    seeds, because all leaves share one label. Pass leaf-instance ids as
+    `labels` to also seed where two different leaves touch. Distances are
+    still measured for every point.
     """
     tree = tree or cKDTree(xyz)
     if len(seed_ignore):
@@ -99,19 +80,23 @@ def miou(gt, pred, classes):
 
 
 def evaluate(xyz, gt, pred, radii, classes=None, k=16, exclude_soil=True,
-             seed_ignore=()):
-    """Global mIoU vs junction-restricted mIoU across a sweep of band radii.
+             seed_ignore=(), seed_labels=None):
+    """Global mIoU and junction-restricted mIoU over a sweep of band radii.
 
-    seed_ignore=(0,) restricts the band to organ-organ junctions by refusing to
-    treat the soil-plant contact as a boundary. That contact is the easiest
-    transition in the scan and, left in, it dominates the band on soil-heavy
-    scans -- so the metric ends up measuring ground separation rather than the
-    leaf collar it is named after.
+    seed_ignore=(0,) gives the organ-only band used in the paper, in which
+    soil contact is not a boundary. Soil contact is the easiest transition in
+    a scan, and on scans with a lot of soil it would otherwise supply most of
+    the band.
+
+    seed_labels, if given, are used to locate the boundaries instead of gt,
+    for example leaf-instance ids for the instance-aware band. Scoring always
+    uses gt and pred.
     """
     classes = classes if classes is not None else sorted(set(gt.tolist()))
     scored = [c for c in classes if not (exclude_soil and c == 0)]
     tree = cKDTree(xyz)
-    dist, _ = distance_to_boundary(xyz, gt, k=k, tree=tree, seed_ignore=seed_ignore)
+    seeds_from = gt if seed_labels is None else seed_labels
+    dist, _ = distance_to_boundary(xyz, seeds_from, k=k, tree=tree, seed_ignore=seed_ignore)
 
     res = {"n_points": int(len(xyz)),
            "mIoU_global": miou(gt, pred, scored),

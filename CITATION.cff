@@ -4,10 +4,11 @@ title: "J-IoU: junction-restricted evaluation for 3D plant organ segmentation"
 abstract: >-
   Evaluation code for J-IoU, a junction-restricted protocol that scores 3D
   plant organ segmentation only within a narrow band around ground-truth organ
-  boundaries, together with a geometric label-integrity audit for annotated
-  plant point clouds.
+  boundaries, together with a geometric label check for annotated plant
+  point clouds and the label corrections for Pheno4D used in the paper.
 type: software
-version: "1.0.0"
+version: "1.1.0"
+date-released: "2026-09-23"
 license: MIT
 authors:
   - family-names: Toscany

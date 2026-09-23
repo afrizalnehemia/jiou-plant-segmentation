@@ -1,24 +1,30 @@
-"""Convert raw Pheno4D scans into the per-scan npy layout the training code reads.
+"""Convert raw Pheno4D scans into the per-scan layout read by Pointcept.
 
-Raw format (verified against the data, not guessed):
-  maize  : 5 columns  x y z collar tip
-             collar -> 0 soil, 1 stem, >=2 leaf instances
-             tip    -> 0 soil, >=1 leaf instances (no stem class at all)
-  tomato : 4 columns  x y z label
-             label  -> 0 soil, 1 stem, >=2 leaf instances
+Raw format:
+  maize   5 columns  x y z collar tip
+            collar: 0 soil, 1 stem, 2 and up one id per leaf
+            tip:    0 soil, 1 and up one id per leaf (no stem class)
+  tomato  4 columns  x y z label (collar convention)
 
-Output, one directory per scan:
+Output, one folder per scan:
   coord.npy      float32 (N,3)  millimetres, centred on the plant
   segment.npy    int16   (N,)   0 soil, 1 stem, 2 leaf
   instance.npy   int32   (N,)   -1 for soil and stem, 0..k-1 per leaf
-  meta.json                     counts, extent, provenance
+  meta.json                     counts, extent, corrections applied
 
-Units are MILLIMETRES and stay that way end to end. The junction radius is a
-physical distance, so switching to metres halfway through would silently change
-what the metric measures. Grid sizes in the model configs are in mm to match.
+Coordinates stay in millimetres throughout, since the band radius and the
+grid size in the configs are both given in mm.
+
+  python scripts/prepare_data.py data/Pheno4D data/pheno4d --corrected
+
+--corrected applies the label corrections in jiou/labels.py (collar column and
+tomato labels only). All results in the paper use it.
 """
 import argparse, json, os, sys
 import numpy as np
+
+sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), ".."))
+from jiou.labels import CORRECTIONS, apply_corrections
 
 SEM_SOIL, SEM_STEM, SEM_LEAF = 0, 1, 2
 
@@ -39,8 +45,10 @@ def read_points(path):
         return np.loadtxt(path)
 
 
-def parse_scan(path, scheme="collar"):
+def parse_scan(path, scheme="collar", corrected=False):
     raw = read_points(path)
+    plant = os.path.basename(os.path.dirname(path))
+    scan = os.path.splitext(os.path.basename(path))[0]
     if raw.ndim != 2 or raw.shape[1] < 4:
         raise ValueError(f"{path}: expected >=4 columns, got shape {raw.shape}")
     xyz = raw[:, :3].astype(np.float32)
@@ -51,6 +59,10 @@ def parse_scan(path, scheme="collar"):
     else:                                       # tomato
         lab = raw[:, 3].astype(np.int64)
         tip_scheme = False
+    # The corrections refer to the collar column (column 3), so they are only
+    # applied there. Nothing in the tip column has been audited.
+    if corrected and not tip_scheme:
+        lab = apply_corrections(plant, scan, lab)
 
     if tip_scheme:
         seg = np.where(lab == 0, SEM_SOIL, SEM_LEAF).astype(np.int16)
@@ -89,6 +101,8 @@ def write_scan(out_dir, xyz, seg, inst, src):
         "n_leaf_instances": int(inst.max() + 1) if (inst >= 0).any() else 0,
         "units": "mm",
     }
+    meta["label_corrections"] = CORRECTIONS.get(
+        (os.path.basename(os.path.dirname(out_dir)), os.path.basename(out_dir)), [])
     json.dump(meta, open(os.path.join(out_dir, "meta.json"), "w"), indent=1)
     return meta
 
@@ -100,6 +114,8 @@ def main():
     ap.add_argument("--scheme", default="collar", choices=["collar", "tip"],
                     help="maize labelling scheme; tomato ignores this")
     ap.add_argument("--limit", type=int, default=0, help="debug: stop after N scans")
+    ap.add_argument("--corrected", action="store_true",
+                    help="apply the corrections in jiou/labels.py (used for all results in the paper)")
     a = ap.parse_args()
 
     plants = sorted(d for d in os.listdir(a.raw_root)
@@ -116,7 +132,7 @@ def main():
             dst = os.path.join(a.out_root, plant, os.path.splitext(s)[0])
             if os.path.exists(os.path.join(dst, "meta.json")):
                 skipped += 1; continue
-            xyz, seg, inst = parse_scan(src, a.scheme)
+            xyz, seg, inst = parse_scan(src, a.scheme, a.corrected)
             m = write_scan(dst, xyz, seg, inst, src)
             total += 1
             print(f"{plant}/{s}: {m['n_points']:>9,} pts  "

@@ -1,8 +1,16 @@
-"""Score every exported run with both protocols and emit one tidy CSV.
+"""Score exported predictions with the global and junction-restricted metrics.
 
-Produces, per (model, seed, scan): global mIoU and junction-restricted mIoU at
-several band radii. Downstream aggregation then gives mean +/- std across seeds,
-which is the number the literature never reports.
+One row per (model, seed, scan) with global mIoU and, for both band variants,
+J-IoU and per-class IoU at every radius:
+  J_*  all-boundary band (soil contact counts as a boundary)
+  O_*  organ-only band (soil contact does not count), used in the paper
+
+  python scripts/score.py --gt_root data/pheno4d --results_root predictions/maize \
+      --out_csv results/scores-maize.csv
+
+gt_root is the output of prepare_data.py. For the corrected labels, prepare it
+with --corrected. For per-scan confusion counts over all band variants,
+including k = 8 and 32 and the instance-aware band, use band_counts.py.
 """
 import argparse, csv, glob, os, sys
 import numpy as np
@@ -28,15 +36,8 @@ for run_dir in sorted(d for d in glob.glob(os.path.join(a.results_root, "*")) if
         gt = np.load(os.path.join(gt_dir, "segment.npy")).astype(np.int64)
         pred = np.load(pf).astype(np.int64)
         if len(pred) != len(gt):
-            print(f"!! {run}/{name}: {len(pred)} vs {len(gt)} -- run export_predictions.py first")
+            print(f"skip {run}/{name}: {len(pred)} predictions for {len(gt)} points, run export_predictions.py first")
             continue
-        # Both band definitions, computed side by side so they can be compared
-        # rather than chosen up front:
-        #   J -- every label boundary, soil-plant contact included
-        #   O -- organ-organ junctions only (soil does not count as a boundary)
-        # Soil contact is the easiest transition in a scan. Left in, it dominates
-        # the band on soil-heavy scans, and the metric then quietly measures
-        # ground separation instead of the leaf collar.
         r = evaluate(coord, gt, pred, a.radii)
         o = evaluate(coord, gt, pred, a.radii, seed_ignore=(0,))
         row = {"model": model, "seed": seed, "plant": plant, "scan": scan,

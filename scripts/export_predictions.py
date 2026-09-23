@@ -4,7 +4,7 @@ Why this step exists
 --------------------
 Every model in this comparison voxelises or subsamples before inference. The
 junction band we score on is only a few millimetres wide, so a coarse grid can
-leave almost no points inside it -- meaning the junction metric would be computed
+leave almost no points inside it. The junction metric would then be computed
 on whatever survived the grid rather than on the real geometry, and each model
 would be scored on a different set of points. That is not a comparison.
 

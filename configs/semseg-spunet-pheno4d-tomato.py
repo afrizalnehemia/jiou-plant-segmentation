@@ -19,7 +19,7 @@ test_plants  = ["Tomato01", "Tomato02"]
 #
 # Two things differ from maize and are worth knowing before reading the results:
 #
-# 1. The label scheme is the SAME (0 soil, 1 stem, 2 leaf) -- tomato only ever has
+# 1. The label scheme is the SAME (0 soil, 1 stem, 2 leaf). Tomato only ever has
 #    one collar-style label column. num_classes and names are unchanged, so both
 #    species are scored against identical class definitions.
 #
@@ -31,11 +31,11 @@ test_plants  = ["Tomato01", "Tomato02"]
 
 
 data_root = "data/pheno4d"
-grid_size = 0.5          # mm -- see GRID NOTE below
+grid_size = 0.5          # mm, see GRID NOTE below
 
 # GRID NOTE
-# Point spacing on the plant itself in Pheno4D is 0.03-0.08 mm -- measured, not
-# assumed. A 2 mm grid is 25-60x coarser than the data, and the junction band
+# Point spacing on the plant itself in Pheno4D is 0.03-0.08 mm (measured, not
+# assumed). A 2 mm grid is 25-60x coarser than the data, and the junction band
 # being scored is only a few millimetres wide, so the model gets marked down
 # partly for being blinded by preprocessing rather than for its architecture.
 # The compute cost is low (0.5 mm -> ~80k voxels per scan, 0.25 mm -> ~325k), so a
@@ -45,7 +45,7 @@ grid_size = 0.5          # mm -- see GRID NOTE below
 num_classes = 3          # 0 soil, 1 stem, 2 leaf
 names = ["soil", "stem", "leaf"]
 
-batch_size = 2          # TOMATO: not 4 as on maize -- see BATCH NOTE
+batch_size = 2          # TOMATO: not 4 as on maize, see BATCH NOTE
 # BATCH NOTE
 # Tomato scans reach 4.2M points (maize: 1.7M). PTv3, which peaks at 12.1 GB on
 # maize, asks for 21.6 GB here and OOMs a 24 GB card. Batch 2 is used for BOTH

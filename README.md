@@ -2,31 +2,30 @@
 
 [![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.22893259.svg)](https://doi.org/10.5281/zenodo.22893259)
 
-Organ-level segmentation of plant point clouds is almost always reported as a
-single global mIoU. That number is dominated by the interiors of large organs.
-The traits people actually want — leaf insertion angle, leaf count, internode
-length — are determined at the **leaf collar**, where the leaf meets the stem,
-and that region is tiny: points within 1 mm of an organ–organ boundary are
-**0.19 % of a maize scan and 0.73 % of a tomato scan** in Pheno4D.
+Organ segmentation of plant point clouds is usually reported as one global
+mIoU. Each class-wise IoU in that number is accumulated over the whole extent
+of the class, and only a small part of it lies near the junctions between
+organs. In Pheno4D, points within 1 mm of a stem-leaf boundary are 0.29 % of a
+maize scan and 0.73 % of a tomato scan. Traits such as leaf insertion angle,
+leaf count and internode length are measured at exactly these junctions.
 
-A model can therefore fail at every leaf collar in the plant and still post a
-global score that looks close to solved.
+J-IoU scores a segmentation only inside a band around the ground-truth
+boundaries between organs. It adapts the trimap and Boundary IoU evaluation
+from 2D image segmentation to 3D point clouds.
 
-**J-IoU** restricts the score to a narrow band around ground-truth organ
-boundaries, adapting the trimap / Boundary-IoU idea from 2D image segmentation
-to irregularly sampled 3D point clouds. On Pheno4D, across two architectures
-and five random seeds each:
+Results on Pheno4D, two architectures, five seeds each, mean ± sd over seeds,
+corrected labels (see [Label errors](#label-errors-in-pheno4d)):
 
-| Species | Model | Global mIoU | J-IoU (r = 1 mm) | gap |
+| Species | Model | Global mIoU | J-IoU (r = 1 mm) | Gap |
 |---|---|---|---|---|
-| Maize  | SparseUNet | 0.511 ± 0.039 | 0.333 ± 0.040 | 0.178 |
-| Maize  | PTv3       | 0.520 ± 0.026 | 0.319 ± 0.034 | 0.201 |
+| Maize  | SparseUNet | 0.782 ± 0.094 | 0.484 ± 0.052 | 0.297 |
+| Maize  | PTv3       | 0.682 ± 0.109 | 0.439 ± 0.035 | 0.243 |
 | Tomato | SparseUNet | 0.925 ± 0.003 | 0.569 ± 0.010 | 0.356 |
 | Tomato | PTv3       | 0.930 ± 0.001 | 0.564 ± 0.010 | 0.366 |
 
-On tomato the gap is 37× the between-seed standard deviation. The difference
-*between the two architectures*, by contrast, is not resolvable at five seeds —
-which is worth keeping in mind when reading single-run comparisons.
+On tomato the gap is 37 times the standard deviation between seeds. The
+difference between the two architectures at the junction is not resolved with
+five seeds.
 
 ## Install
 
@@ -36,106 +35,102 @@ cd jiou-plant-segmentation
 pip install -r requirements.txt
 ```
 
-The metric itself needs only `numpy` and `scipy`. `pandas` makes reading raw
-Pheno4D text files roughly two orders of magnitude faster, and `matplotlib` is
-needed only for the figure scripts.
+The metric needs only `numpy` and `scipy`. `pandas` reads the raw Pheno4D text
+files much faster, and `matplotlib` is only needed for the figures.
 
-## Using the metric on your own data
+## Using the metric
 
 ```python
 from jiou import evaluate, load_pheno4d_txt
 
-xyz, gt = load_pheno4d_txt("data/Pheno4D/Maize01/M01_0325_a.txt")
-pred = my_model(xyz)                      # per-point labels, same order as xyz
+xyz, gt = load_pheno4d_txt("data/Pheno4D/Maize01/M01_0325_a.txt", corrected=True)
+pred = my_model(xyz)                      # one label per point, same order as xyz
 
 res = evaluate(xyz, gt, pred, radii=[1, 2, 5, 10], seed_ignore=(0,))
 print("global mIoU:", res["mIoU_global"])
 for b in res["bands"]:
-    print(f"  r={b['radius']:g}mm  J-IoU={b['J_mIoU']:.4f}"
-          f"  band={b['band_point_share']*100:.2f}% of points"
-          f"  gap={b['hidden_gap']:.4f}")
+    print(f"r = {b['radius']:g} mm  J-IoU = {b['J_mIoU']:.4f}  "
+          f"band = {100 * b['band_point_share']:.2f} % of points")
 ```
 
-`xyz` and `pred` must be at the **original full resolution** of the cloud. If
-your network works on voxels, propagate predictions back to the original points
-first (`scripts/export_predictions.py` does this by nearest neighbour).
-Evaluating at voxel resolution scores an easier problem, because voxelisation
-discards the most information exactly where sampling is densest — at the
-junction.
+`xyz` and `pred` must be at the original resolution of the scan. If your
+network works on voxels, map the predictions back to the original points first
+(`scripts/export_predictions.py` does this by nearest neighbour). Scoring at
+voxel resolution measures an easier problem, because voxelisation removes most
+detail where the sampling is densest, which is near the junctions.
 
-### The two band definitions
+### Band variants
 
-Boundary seeds are points whose *k* nearest neighbours include a different
-ground-truth label. `seed_ignore` controls which labels may seed a band:
+Boundary seeds are points whose k nearest neighbours (k = 16 by default)
+include a different ground-truth label. Every point within distance r of a seed
+is in the band. The band depends only on the ground truth, so every model is
+scored on the same points.
 
-* `seed_ignore=()` — **all-boundary band**. Every label transition seeds,
-  including soil–plant contact.
-* `seed_ignore=(0,)` — **organ-only band**. Soil is dropped before boundaries
-  are located, so only stem–leaf and leaf–leaf transitions seed.
+- `seed_ignore=(0,)`: **organ-only band**, used in the paper. Soil is removed
+  before the seeds are found, so only stem-leaf transitions produce seeds.
+- `seed_ignore=()`: **all-boundary band**. Soil contact also produces seeds.
+  On scans with a lot of soil this contact makes up most of the band, so the
+  score then mostly reflects the separation of plant and ground.
+- `seed_labels=ids` with `seed_ignore=(0,)`: **instance-aware band**. Seeds are
+  found on the leaf-instance ids, so contact between two different leaves also
+  counts. Load the ids with `load_pheno4d_txt(..., return_ids=True)`.
 
-This matters more than it looks. Soil contact is the easiest transition in a
-scan; on soil-dominated scans it supplies most of the band, and the metric then
-silently measures ground separation rather than the leaf collar it is named
-for. Report both, or state which you used.
-
-Bands are computed from the **ground truth only**, never from predictions, so
-the same band applies to every model compared on a scan.
+With the semantic labels alone, contact between two leaves never produces a
+seed, since all leaves share one label.
 
 ## Reproducing the paper
 
-1. **Get the data.** Download Pheno4D from
-   <https://www.ipb.uni-bonn.de/html/projects/Pheno4D/> and unpack it to
-   `data/Pheno4D/` (so that `data/Pheno4D/Maize01/M01_0313_a.txt` exists).
-2. **Audit the labels** (optional but recommended — it is how the anomaly in
-   `docs/label-anomaly.md` was found):
-   ```bash
-   python -c "from jiou import audit_directory; audit_directory('data/Pheno4D')"
-   ```
-3. **Convert to the training format:** `python scripts/prepare_pheno4d.py`
-4. **Train.** `scripts/train_seeds.sh` runs five seeds per configuration using
-   [Pointcept](https://github.com/Pointcept/Pointcept); the configs in
-   `configs/` are the ones used in the paper. Copy `configs/pheno4d_dataset.py`
-   into Pointcept's `pointcept/datasets/` as `pheno4d.py`.
-5. **Export predictions at full resolution:** `scripts/test_and_export.sh`
-6. **Score:**
-   ```bash
-   python scripts/score_runs.py \
-       --gt_root data/pheno4d --results_root predictions/maize \
-       --out_csv results/scores-maize.csv
-   ```
-7. **Figures:** `python scripts/make_paper_figures.py`
+1. **Data.** Download Pheno4D from <https://www.ipb.uni-bonn.de/data/pheno4d/>
+   and unpack it so that `data/Pheno4D/Maize01/M01_0313_a.txt` exists.
+2. **Check the labels** (optional):
+   `python -c "from jiou import audit_directory; audit_directory('data/Pheno4D')"`
+3. **Convert:** `python scripts/prepare_data.py data/Pheno4D data/pheno4d --corrected`
+4. **Train** with [Pointcept](https://github.com/Pointcept/Pointcept). Copy
+   `configs/pheno4d_dataset.py` to `pointcept/datasets/pheno4d.py`, register it
+   in `pointcept/datasets/__init__.py`, copy the configs to
+   `configs/pheno4d/`, then run `scripts/train.sh <config>` for five seeds.
+5. **Test and export** full-resolution predictions: `scripts/test.sh <config>`
+6. **Score:** `python scripts/band_counts.py --raw data/Pheno4D --pred predictions/maize --out results/band-counts`,
+   then `python scripts/summarise.py results/band-counts`. For the plain
+   per-scan table use `scripts/score.py`.
+7. **Figures:** `python scripts/figures.py`
 
-Steps 1–6 need a GPU and take several hours. **If you only want to check the
-numbers**, `results/*.csv` contains the per-scan scores for all 20 runs
-(2 species × 2 architectures × 5 seeds), and steps 7 and the aggregation work
-directly from those.
+Steps 4 and 5 need a GPU and take several hours per run. To check the numbers
+without training, use the files in `results/`:
 
-## The label anomaly
+| File | Content |
+|---|---|
+| `scores-*-corrected.csv` | per-scan scores for all 20 runs, corrected labels |
+| `scores-*-raw.csv` | the same runs scored against the labels as published |
+| `band-counts/` | per-scan confusion counts for every band variant (k = 8, 16, 32, all-boundary, instance-aware) |
+| `label-audit.csv` | the label check for all 126 scans |
 
-The geometric audit flagged one scan out of 126 in Pheno4D —
-`Tomato02/T02_0325_a` — in which the soil and stem labels are interchanged.
-Scored against the published labels, that scan yields a global mIoU of 0.496 in
-every one of ten independent training runs; with the labels corrected it yields
-0.950. `results/scores-tomato-raw.csv` and
-`results/scores-tomato-corrected.csv` contain both. Details and the evidence
-are in [`docs/label-anomaly.md`](docs/label-anomaly.md).
+`scripts/write_configs.py` and `scripts/queue.sh` set up and run the second
+batch of the paper (two further plant folds and a grid-size sweep) on several
+GPUs.
 
-## Repository layout
+## Label errors in Pheno4D
+
+The label check found ten scans with interchanged labels: soil and stem in
+Tomato02/T02_0325_a, stem and first leaf in all seven scans of Maize02, and the
+stem carrying a leaf id in Maize03/M03_0321_a and M03_0324_a. Only the
+leaf-collar labels are affected. Details, evidence and the effect on the scores
+are in [`docs/label-errors.md`](docs/label-errors.md).
+
+## Layout
 
 ```
-jiou/                  the metric, the loaders and the label audit (importable)
-scripts/               data preparation, training, scoring, figures
-configs/               Pointcept configs used in the paper + the dataset class
-results/               per-scan scores for all 20 runs
-docs/                  the label anomaly write-up
+jiou/        the metric, data loading, label corrections and label check
+scripts/     data preparation, training, scoring, summaries, figures
+configs/     Pointcept configs and dataset class used in the paper
+results/     per-scan scores and band counts for all runs
+docs/        the label errors
 ```
 
 ## Citing
 
-If you use this, please cite the paper (see `CITATION.cff`). The evaluation
-code is released so that paired reporting of global and junction-restricted
-scores costs nothing to adopt.
+Please cite the paper and this software (see `CITATION.cff`).
 
 ## License
 
-MIT — see `LICENSE`.
+MIT, see `LICENSE`.

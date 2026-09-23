@@ -1,0 +1,59 @@
+# Revision batch, priority order. One job per line; '#' lines are skipped.
+# --- P1 fold0 maize
+rev-spunet-maize-f0-g0p5-s0
+rev-spunet-maize-f0-g0p5-s1
+rev-spunet-maize-f0-g0p5-s2
+rev-spunet-maize-f0-g0p5-s3
+rev-spunet-maize-f0-g0p5-s4
+rev-ptv3-maize-f0-g0p5-s0
+rev-ptv3-maize-f0-g0p5-s1
+rev-ptv3-maize-f0-g0p5-s2
+rev-ptv3-maize-f0-g0p5-s3
+rev-ptv3-maize-f0-g0p5-s4
+# --- P2 folds maize
+rev-spunet-maize-f1-g0p5-s0
+rev-spunet-maize-f1-g0p5-s1
+rev-spunet-maize-f1-g0p5-s2
+rev-ptv3-maize-f1-g0p5-s0
+rev-ptv3-maize-f1-g0p5-s1
+rev-ptv3-maize-f1-g0p5-s2
+rev-spunet-maize-f2-g0p5-s0
+rev-spunet-maize-f2-g0p5-s1
+rev-spunet-maize-f2-g0p5-s2
+rev-ptv3-maize-f2-g0p5-s0
+rev-ptv3-maize-f2-g0p5-s1
+rev-ptv3-maize-f2-g0p5-s2
+# --- P3 folds tomato
+rev-spunet-tomato-f1-g0p5-s0
+rev-spunet-tomato-f1-g0p5-s1
+rev-spunet-tomato-f1-g0p5-s2
+rev-ptv3-tomato-f1-g0p5-s0
+rev-ptv3-tomato-f1-g0p5-s1
+rev-ptv3-tomato-f1-g0p5-s2
+rev-spunet-tomato-f2-g0p5-s0
+rev-spunet-tomato-f2-g0p5-s1
+rev-spunet-tomato-f2-g0p5-s2
+rev-ptv3-tomato-f2-g0p5-s0
+rev-ptv3-tomato-f2-g0p5-s1
+rev-ptv3-tomato-f2-g0p5-s2
+# --- P4 grid tomato
+rev-spunet-tomato-f0-g2-s0
+rev-spunet-tomato-f0-g2-s1
+rev-spunet-tomato-f0-g2-s2
+rev-spunet-tomato-f0-g1-s0
+rev-spunet-tomato-f0-g1-s1
+rev-spunet-tomato-f0-g1-s2
+rev-spunet-tomato-f0-g0p5-s0
+rev-spunet-tomato-f0-g0p5-s1
+rev-spunet-tomato-f0-g0p5-s2
+rev-spunet-tomato-f0-g0p25-s0
+rev-spunet-tomato-f0-g0p25-s1
+rev-spunet-tomato-f0-g0p25-s2
+# --- P5 fold0 tomato
+rev-spunet-tomato-f0-g0p5-s3
+rev-spunet-tomato-f0-g0p5-s4
+rev-ptv3-tomato-f0-g0p5-s0
+rev-ptv3-tomato-f0-g0p5-s1
+rev-ptv3-tomato-f0-g0p5-s2
+rev-ptv3-tomato-f0-g0p5-s3
+rev-ptv3-tomato-f0-g0p5-s4

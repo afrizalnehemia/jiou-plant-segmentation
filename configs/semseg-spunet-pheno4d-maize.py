@@ -16,11 +16,11 @@ train_plants = ["Maize03", "Maize04", "Maize05", "Maize06", "Maize07"]
 test_plants  = ["Maize01", "Maize02"]
 
 data_root = "data/pheno4d"
-grid_size = 0.5          # mm -- see GRID NOTE below
+grid_size = 0.5          # mm, see GRID NOTE below
 
 # GRID NOTE
-# Point spacing on the plant itself in Pheno4D is 0.03-0.08 mm -- measured, not
-# assumed. A 2 mm grid is 25-60x coarser than the data, and the junction band
+# Point spacing on the plant itself in Pheno4D is 0.03-0.08 mm (measured, not
+# assumed). A 2 mm grid is 25-60x coarser than the data, and the junction band
 # being scored is only a few millimetres wide, so the model gets marked down
 # partly for being blinded by preprocessing rather than for its architecture.
 # The compute cost is low (0.5 mm -> ~80k voxels per scan, 0.25 mm -> ~325k), so a

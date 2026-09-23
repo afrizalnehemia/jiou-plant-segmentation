@@ -7,7 +7,7 @@ into training. Pheno4D has 7 maize and 7 tomato plants; the dataset paper uses
 be cross-validated instead of resting on one lucky partition.
 
 The split is FIXED across training seeds. Seeds vary weight init and data order,
-not which plants are held out -- otherwise seed variance and split variance get
+not which plants are held out. Otherwise seed variance and split variance get
 confounded and the error bars mean nothing.
 """
 
