@@ -71,21 +71,39 @@ Hugging Face, use the leaf-collar labels as their default.
 
 ## Effect on the scores
 
-The predictions are the same in both cases, only the reference labels change.
+The predictions are the same in both columns, only the reference labels
+change. Values are from the fold-0 runs of the paper (5 seeds per
+architecture, labels corrected during training).
 
 | | published labels | corrected |
 |---|---|---|
 | T02_0325_a, global mIoU (mean of 10 runs) | 0.496 | 0.950 |
 | T02_0325_a, J-IoU at 5 mm | undefined (no seeds) | 0.844 |
-| M02_0313_a, SparseUNet seed 0, global mIoU | 0.001 | 0.995 |
-| Maize test set, SparseUNet, global mIoU | 0.511 | 0.782 |
-| Maize test set, PTv3, global mIoU | 0.520 | 0.682 |
-| Maize test set, SparseUNet, J-IoU at 1 mm | 0.333 | 0.484 |
-| Maize test set, PTv3, J-IoU at 1 mm | 0.319 | 0.439 |
+| M02_0313_a, SparseUNet seed 0, global mIoU | 0.001 | 0.996 |
+| Maize02, 7 scans, SparseUNet, global mIoU | 0.115 | 0.818 |
+| Maize02, 7 scans, PTv3, global mIoU | 0.122 | 0.818 |
 
-`results/scores-*-raw.csv` hold the scores against the published labels and
-`results/scores-*-corrected.csv` against the corrected ones.
+The per-scan counts behind this table are in
+`results/revision/band-counts-published-*-f0/` (published labels) and
+`results/revision/band-counts-*-f0/` (corrected labels).
 
-The two Maize03 scans are training data. The first batch of runs (release
-1.0.0) was trained with them as published. The runs for the revised paper are
-trained on corrected data throughout.
+## Reproducing with the published or the corrected labels
+
+The corrections are a fixed list of id swaps, so every step can be run either
+way.
+
+| Step | Published labels | Corrected labels |
+|---|---|---|
+| Load one scan | `load_pheno4d_txt(path)` | `load_pheno4d_txt(path, corrected=True)` |
+| Prepare training data | `python scripts/prepare_data.py data/Pheno4D data/pheno4d` | `python scripts/prepare_data.py data/Pheno4D data/pheno4d-fixed --corrected` |
+| Score predictions | `python scripts/band_counts.py ... --published-labels` | `python scripts/band_counts.py ...` (default) |
+
+`prepare_data.py --corrected` records the swaps it applied in each scan's
+`meta.json`, so a prepared dataset shows which version it is. Running the
+label check on the raw files, `audit_directory("data/Pheno4D")`, lists the
+same ten scans, and `results/label-audit-extents.csv` gives the vertical
+extents behind both tests for all 126 scans.
+
+All runs of the paper (release 1.2.0) were trained and tested on the
+corrected labels. The first batch of runs (release 1.0.0, kept in
+`results/batch1/`) was trained with the two Maize03 scans as published.

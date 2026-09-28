@@ -1,5 +1,19 @@
 # Changelog
 
+## 1.2.0 (2026-09-28)
+
+- Results of the 53 runs used in the paper: three plant-level folds, five
+  seeds on fold 0 and three on folds 1 and 2, a grid-size sweep, all trained
+  and tested on corrected labels and evaluated with the final-epoch weights.
+  Per-scan band counts are in `results/revision/`.
+- `scripts/paper_stats.py` and `scripts/matched_gap.py` recompute every number
+  in the paper from those counts.
+- `docs/label-errors.md` now lists how to run each step with the published or
+  the corrected labels, and gives the effect of the correction on the new runs.
+- `results/label-audit-extents.csv`: soil, stem and tallest-leaf extents for
+  all 126 scans.
+- The first batch of runs moved to `results/batch1/`.
+
 ## 1.1.0 (2026-09-23)
 
 - Second label check (stem vs leaf ids). Together with the first check it

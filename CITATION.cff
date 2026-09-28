@@ -7,8 +7,8 @@ abstract: >-
   boundaries, together with a geometric label check for annotated plant
   point clouds and the label corrections for Pheno4D used in the paper.
 type: software
-version: "1.1.0"
-date-released: "2026-09-23"
+version: "1.2.0"
+date-released: 2026-09-28
 license: MIT
 authors:
   - family-names: Toscany
@@ -34,7 +34,7 @@ keywords:
   - evaluation metric
   - organ junction
   - Pheno4D
-doi: 10.5281/zenodo.22893259
+doi: 10.5281/zenodo.22893258   # concept DOI, resolves to the latest version
 # TODO: fill in once the paper is published
 # preferred-citation:
 #   type: article

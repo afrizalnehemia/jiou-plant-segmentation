@@ -1,6 +1,6 @@
 # J-IoU: junction-restricted evaluation for 3D plant organ segmentation
 
-[![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.22893259.svg)](https://doi.org/10.5281/zenodo.22893259)
+[![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.22893258.svg)](https://doi.org/10.5281/zenodo.22893258)
 
 Organ segmentation of plant point clouds is usually reported as one global
 mIoU. Each class-wise IoU in that number is accumulated over the whole extent
@@ -84,30 +84,35 @@ seed, since all leaves share one label.
    and unpack it so that `data/Pheno4D/Maize01/M01_0313_a.txt` exists.
 2. **Check the labels** (optional):
    `python -c "from jiou import audit_directory; audit_directory('data/Pheno4D')"`
-3. **Convert:** `python scripts/prepare_data.py data/Pheno4D data/pheno4d --corrected`
+3. **Convert:** `python scripts/prepare_data.py data/Pheno4D data/pheno4d-fixed --corrected`
+   (leave out `--corrected` for the labels as published).
 4. **Train** with [Pointcept](https://github.com/Pointcept/Pointcept). Copy
-   `configs/pheno4d_dataset.py` to `pointcept/datasets/pheno4d.py`, register it
-   in `pointcept/datasets/__init__.py`, copy the configs to
-   `configs/pheno4d/`, then run `scripts/train.sh <config>` for five seeds.
+   `configs/pheno4d_dataset.py` to `pointcept/datasets/pheno4d.py` and register
+   it in `pointcept/datasets/__init__.py`. The 53 configs of the paper are in
+   `configs/revision/`, written by `scripts/write_configs.py`: three
+   plant-level folds (test plants 1-2, 3-4, 5-6), five seeds on fold 0 and
+   three on folds 1 and 2, both architectures, plus a grid-size sweep for
+   SparseUNet on tomato fold 0. `scripts/queue.sh` runs them on several GPUs.
+   Every run is evaluated with the weights of the final epoch.
 5. **Test and export** full-resolution predictions: `scripts/test.sh <config>`
-6. **Score:** `python scripts/band_counts.py --raw data/Pheno4D --pred predictions/maize --out results/band-counts`,
-   then `python scripts/summarise.py results/band-counts`. For the plain
-   per-scan table use `scripts/score.py`.
-7. **Figures:** `python scripts/figures.py`
+6. **Score:** `python scripts/band_counts.py --raw data/Pheno4D --pred <folder of runs> --out results/revision/band-counts-<species>-f<fold>`
+   (add `--published-labels` to score against the labels as published).
+7. **Numbers in the paper:** `python scripts/paper_stats.py` and
+   `python scripts/matched_gap.py`, which read `results/revision/` and write
+   `paper-numbers.txt`, `paper-stats.json` and `matched-gap.txt` there.
 
-Steps 4 and 5 need a GPU and take several hours per run. To check the numbers
-without training, use the files in `results/`:
+Steps 4 and 5 need a GPU and take about 50 minutes (maize) to 140 minutes
+(tomato) per run on an RTX 4090. To check the numbers without training, run
+step 7 on the files in `results/`:
 
 | File | Content |
 |---|---|
-| `scores-*-corrected.csv` | per-scan scores for all 20 runs, corrected labels |
-| `scores-*-raw.csv` | the same runs scored against the labels as published |
-| `band-counts/` | per-scan confusion counts for every band variant (k = 8, 16, 32, all-boundary, instance-aware) |
-| `label-audit.csv` | the label check for all 126 scans |
-
-`scripts/write_configs.py` and `scripts/queue.sh` set up and run the second
-batch of the paper (two further plant folds and a grid-size sweep) on several
-GPUs.
+| `revision/band-counts-<species>-f<fold>/` | per-scan confusion counts of all 53 runs for every band variant and radius, corrected labels |
+| `revision/band-counts-published-<species>-f0/` | the fold-0 runs on the affected scans, scored against the labels as published |
+| `revision/paper-numbers.txt`, `paper-stats.json`, `matched-gap.txt` | every number in the tables and text of the paper |
+| `revision/error-share.csv` | share of points and of errors inside the band, per scan |
+| `label-audit.csv`, `label-audit-extents.csv` | the label check for all 126 scans |
+| `batch1/` | the first 20 runs (release 1.0.0), fold 0 only, kept for reference |
 
 ## Label errors in Pheno4D
 
@@ -123,7 +128,7 @@ are in [`docs/label-errors.md`](docs/label-errors.md).
 jiou/        the metric, data loading, label corrections and label check
 scripts/     data preparation, training, scoring, summaries, figures
 configs/     Pointcept configs and dataset class used in the paper
-results/     per-scan scores and band counts for all runs
+results/     band counts, label audit and paper numbers for all runs
 docs/        the label errors
 ```
 

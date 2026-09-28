@@ -1,0 +1,53 @@
+===== gap at r = 1 mm, matched scans (mean over seeds; gap / sd of J-IoU)
+maize  f0 PTv3       global all 0.876  matched 0.876  J 0.617  gap 0.260  gap/sd 4.1
+maize  f0 SparseUNet global all 0.884  matched 0.884  J 0.638  gap 0.246  gap/sd 4.5
+maize  f1 PTv3       global all 0.877  matched 0.895  J 0.580  gap 0.315  gap/sd 7.4
+maize  f1 SparseUNet global all 0.937  matched 0.935  J 0.601  gap 0.335  gap/sd 6.4
+maize  f2 PTv3       global all 0.923  matched 0.915  J 0.609  gap 0.306  gap/sd 4.5
+maize  f2 SparseUNet global all 0.865  matched 0.908  J 0.565  gap 0.343  gap/sd 2.3
+tomato f0 PTv3       global all 0.930  matched 0.930  J 0.570  gap 0.360  gap/sd 30.7
+tomato f0 SparseUNet global all 0.926  matched 0.926  J 0.559  gap 0.367  gap/sd 15.7
+tomato f1 PTv3       global all 0.862  matched 0.862  J 0.537  gap 0.324  gap/sd 8.3
+tomato f1 SparseUNet global all 0.863  matched 0.863  J 0.538  gap 0.325  gap/sd 12.4
+tomato f2 PTv3       global all 0.940  matched 0.940  J 0.572  gap 0.369  gap/sd 18.7
+tomato f2 SparseUNet global all 0.934  matched 0.934  J 0.578  gap 0.356  gap/sd 47.2
+
+===== pooled over folds, seeds 0-2, r = 1 mm
+maize  PTv3       global all 0.892  matched 0.894  J 0.601  gap 0.293
+maize  SparseUNet global all 0.897  matched 0.910  J 0.599  gap 0.311
+tomato PTv3       global all 0.910  matched 0.910  J 0.557  gap 0.353
+tomato SparseUNet global all 0.907  matched 0.907  J 0.556  gap 0.352
+
+===== pooled over folds, seeds 0-2, r = 2 mm
+maize  PTv3       global all 0.892  matched 0.894  J 0.738  gap 0.156
+maize  SparseUNet global all 0.897  matched 0.910  J 0.734  gap 0.176
+tomato PTv3       global all 0.910  matched 0.910  J 0.701  gap 0.209
+tomato SparseUNet global all 0.907  matched 0.907  J 0.701  gap 0.207
+
+===== pooled over folds, seeds 0-2, r = 5 mm
+maize  PTv3       global all 0.892  matched 0.894  J 0.856  gap 0.038
+maize  SparseUNet global all 0.897  matched 0.910  J 0.863  gap 0.047
+tomato PTv3       global all 0.910  matched 0.910  J 0.835  gap 0.075
+tomato SparseUNet global all 0.907  matched 0.907  J 0.832  gap 0.075
+
+===== pooled over folds, seeds 0-2, r = 10 mm
+maize  PTv3       global all 0.892  matched 0.894  J 0.904  gap -0.010
+maize  SparseUNet global all 0.897  matched 0.910  J 0.917  gap -0.007
+tomato PTv3       global all 0.910  matched 0.910  J 0.888  gap 0.021
+tomato SparseUNet global all 0.907  matched 0.907  J 0.885  gap 0.023
+
+===== maize, PTv3 minus SparseUNet on global mIoU, all scans vs matched scans
+fold 0 all      -0.0075  95% CI [-0.026, +0.011]  d -0.60  p 0.372
+fold 0 matched  -0.0075  95% CI [-0.026, +0.011]  d -0.60  p 0.372
+fold 1 all      -0.0599  95% CI [-0.109, -0.011]  d -3.04  p 0.030
+fold 1 matched  -0.0405  95% CI [-0.064, -0.017]  d -4.78  p 0.013
+   seedling scan M03_0313_a PTv3       global per seed 0.391, 0.389, 0.967
+   seedling scan M03_0313_a SparseUNet global per seed 0.981, 0.982, 0.876
+   seedling scan M04_0313_a PTv3       global per seed 0.992, 0.950, 0.939
+   seedling scan M04_0313_a SparseUNet global per seed 0.988, 0.866, 0.996
+fold 2 all      +0.0576  95% CI [+0.024, +0.091]  d +4.58  p 0.013
+fold 2 matched  +0.0062  95% CI [-0.034, +0.046]  d +0.40  p 0.658
+   seedling scan M05_0313_a PTv3       global per seed 0.976, 0.982, 0.982
+   seedling scan M05_0313_a SparseUNet global per seed 0.986, 0.988, 0.989
+   seedling scan M06_0313_a PTv3       global per seed 0.994, 0.929, 0.959
+   seedling scan M06_0313_a SparseUNet global per seed 0.182, 0.260, 0.219
