@@ -1,5 +1,11 @@
 # Changelog
 
+## Unreleased
+
+- `docs/label-errors.md` and the README note that the Pheno4D maintainers at
+  the University of Bonn confirmed the ten label inconsistencies
+  (24 September 2026).
+
 ## 1.2.0 (2026-09-28)
 
 - Results of the 53 runs used in the paper: three plant-level folds, five

@@ -119,8 +119,10 @@ step 7 on the files in `results/`:
 The label check found ten scans with interchanged labels: soil and stem in
 Tomato02/T02_0325_a, stem and first leaf in all seven scans of Maize02, and the
 stem carrying a leaf id in Maize03/M03_0321_a and M03_0324_a. Only the
-leaf-collar labels are affected. Details, evidence and the effect on the scores
-are in [`docs/label-errors.md`](docs/label-errors.md).
+leaf-collar labels are affected. The dataset maintainers at the University of
+Bonn checked these ten scans and confirmed the inconsistencies in September
+2026. Details, evidence and the effect on the scores are in
+[`docs/label-errors.md`](docs/label-errors.md).
 
 ## Layout
 

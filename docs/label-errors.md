@@ -5,9 +5,11 @@ labels in ten files. The corrections are listed in `jiou/labels.py` and are
 applied by `prepare_data.py --corrected` and `load_pheno4d_txt(..., corrected=True)`.
 All results in the paper and in `results/*-corrected.csv` use them.
 
-To our knowledge these errors have not been reported before. In September
-2026 neither the dataset page nor the original article carried an erratum, and
-we have written to the dataset maintainers.
+To our knowledge these errors had not been reported before. We reported them
+to the dataset maintainers at the University of Bonn, who checked the ten scans
+and confirmed on 24 September 2026 that the labelling is not consistent in
+these cases. Until a corrected release of the dataset is available, use the
+corrections in this repository.
 
 ## How they were found
 
